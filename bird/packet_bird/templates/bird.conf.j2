@@ -34,7 +34,7 @@ protocol bgp neighbor_v{{ group.address_family }}_{{ loop.index }} {
   multihop;
   {%- endif %}
   neighbor {{ neighbor }} as {{ group.peer_as }};
-  {%- if group.md5_password is not none %}
+  {%- if group.md5_enabled %}
   password "{{ group.md5_password }}";
   {%- endif %}
 }
