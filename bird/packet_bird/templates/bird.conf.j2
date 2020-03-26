@@ -1,0 +1,43 @@
+filter packet_bgp {
+  # the IP range(s) to announce via BGP from this machine
+  # these IP addresses need to be bound to the lo interface
+  # to be reachable; the default behavior is to accept all
+  # prefixes bound to interface lo
+  # if net = A.B.C.D/32 then accept;
+  accept;
+}
+
+router id {{ data.meta.router_id }};
+
+protocol direct {
+  interface "lo"; # Restrict network interfaces BIRD works with
+}
+
+protocol kernel {
+  persist; # Don't remove routes on bird shutdown
+  scan time 20; # Scan kernel routing table every 20 seconds
+  import all; # Default is import all
+  export all; # Default is export none
+}
+
+# This pseudo-protocol watches all interface up/down events.
+protocol device {
+  scan time 10; # Scan interfaces every 10 seconds
+}
+{% for group in data.bgp_neighbors %}
+{%- if group.address_family == 4 %}
+{%- for neighbor in group.peer_ips %}
+protocol bgp neighbor_v{{ group.address_family }}_{{ loop.index }} {
+  export filter packet_bgp;
+  local as {{ group.customer_as }};
+  {%- if group.multihop %}
+  multihop;
+  {%- endif %}
+  neighbor {{ neighbor }} as {{ group.peer_as }};
+  {%- if group.md5_password is not none %}
+  password "{{ group.md5_password }}";
+  {%- endif %}
+}
+{% endfor %}
+{% endif %}
+{% endfor %}

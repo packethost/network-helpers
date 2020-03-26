@@ -1,0 +1,15 @@
+version: '2'
+services:
+
+  bird:
+    image: local/bird:latest
+    container_name: bird
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "179:179"
+    hostname: looking-glass
+    environment:
+      API_TOKEN: your_packet_api_token_here
+      INSTANCE_ID: your_bgp_enabled_instance_id_here
