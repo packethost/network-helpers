@@ -8,7 +8,5 @@ services:
     privileged: true
     restart: unless-stopped
     ports:
-      - "179:179"
-    environment:
-      API_TOKEN: your_packet_api_token_here
-      INSTANCE_ID: your_bgp_enabled_instance_id_here
+      - "tcp/179:179"
+    hostname: looking-glass
