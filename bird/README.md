@@ -9,5 +9,106 @@ An elastic IP address can simply be announced via Bird from the instance that is
 * A BGP enabled project
 * An elastic IP configured on interface lo
 
-### Example 1: Configuring Bird on Baremetal
+### Example 1: Bird via Docker
 
+Using your OS's package management utility, install docker and docker-compose if not already installed.
+
+```bash
+apt -y update && apt -y install docker docker-compose
+```
+
+### Example 2: Bird on Baremetal
+
+First install system dependencies. On Ubuntu 18.04 this looks like:
+
+```bash
+apt -y update && apt -y install python3.6 python3-pip git bird
+```
+
+Now clone the repo and install remaining python dependencies:
+
+```bash
+cd /opt
+git clone https://github.com/packethost/network-helpers.git
+cd network-helpers/bird
+pip3 install jinja2 requests
+```
+
+Now use the `configure.py` script to configure bird:
+
+```
+./configure.py | tee /etc/bird/bird.conf
+filter packet_bgp {
+  # the IP range(s) to announce via BGP from this machine
+  # these IP addresses need to be bound to the lo interface
+  # to be reachable; the default behavior is to accept all
+  # prefixes bound to interface lo
+  # if net = A.B.C.D/32 then accept;
+  accept;
+}
+
+router id 10.99.182.129;
+
+protocol direct {
+  interface "lo"; # Restrict network interfaces BIRD works with
+}
+
+protocol kernel {
+  persist; # Don't remove routes on bird shutdown
+  scan time 20; # Scan kernel routing table every 20 seconds
+  import all; # Default is import all
+  export all; # Default is export none
+}
+
+# This pseudo-protocol watches all interface up/down events.
+protocol device {
+  scan time 10; # Scan interfaces every 10 seconds
+}
+
+protocol bgp neighbor_v4_1 {
+  export filter packet_bgp;
+  local as 65000;
+  neighbor 10.99.182.128 as 65530;
+  password "somepassword";
+}
+
+```
+
+Check that the config looks correct, then restart bird:
+
+```bash
+systemctl restart bird
+```
+
+### Example 3a: Verify BGP Session State in Docker
+
+```
+```
+
+### Example 3b: Verify BGP Session State on Baremetal
+
+```
+birdc
+BIRD 1.6.3 ready.
+bird> show protocols all neighbor_v4_1
+name     proto    table    state  since       info
+neighbor_v4_1 BGP      master   up     15:20:31    Established   
+  Preference:     100
+  Input filter:   ACCEPT
+  Output filter:  packet_bgp
+  Routes:         0 imported, 1 exported, 0 preferred
+  Route change stats:     received   rejected   filtered    ignored   accepted
+    Import updates:              0          0          0          0          0
+    Import withdraws:            0          0        ---          0          0
+    Export updates:              1          0          0        ---          1
+    Export withdraws:            0        ---        ---        ---          0
+  BGP state:          Established
+    Neighbor address: 10.99.182.128
+    Neighbor AS:      65530
+    Neighbor ID:      147.75.36.73
+    Neighbor caps:    refresh restart-aware AS4
+    Session:          external AS4
+    Source address:   10.99.182.129
+    Hold timer:       66/90
+    Keepalive timer:  18/30
+```

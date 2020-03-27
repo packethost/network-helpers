@@ -3,7 +3,6 @@ import os
 import pprint
 import re
 from json.decoder import JSONDecodeError
-from typing import Any, Dict
 
 import jinja2
 import requests
@@ -23,7 +22,7 @@ class BirdNeighbor:
         "routes_out",
     )
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
         if not self.validate():
             raise LookupError("Failed to validate bgp neighbor")
@@ -38,7 +37,7 @@ class BirdNeighbor:
 
 class Bird:
     @staticmethod
-    def http_fetch(url, headers: Dict[str, str] = {}, **kwargs) -> Dict[str, Any]:
+    def http_fetch(url, headers={}, **kwargs):
         response = requests.get(url, headers=headers, params=kwargs)
         try:
             response_payload = response.json()
@@ -55,7 +54,7 @@ class Bird:
                 status=response.status_code,
             )
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs):
         self.has_error = kwargs["has_error"] if "has_error" in kwargs else False
         self.msg = kwargs["msg"] if "msg" in kwargs else None
         self.status = kwargs["status"] if "status" in kwargs else None
