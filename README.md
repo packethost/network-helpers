@@ -1,6 +1,6 @@
 ## Network Helpers
 
-This repo will contains a collection of helper scripts for installing and configuring various network services on the packet platform.
+This repo contains a collection of helper scripts for installing and configuring various network services on the Packet platform.
 
 ### BGP helpers
 
