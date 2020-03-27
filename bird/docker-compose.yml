@@ -8,5 +8,5 @@ services:
     privileged: true
     restart: unless-stopped
     ports:
-      - "tcp/179:179"
+      - "179:179"
     hostname: looking-glass
