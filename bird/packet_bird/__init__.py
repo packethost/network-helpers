@@ -1,8 +1,8 @@
 import json
 import os
-import pprint
 import re
 from json.decoder import JSONDecodeError
+from typing import Any, Dict, List
 
 import jinja2
 import requests
@@ -22,12 +22,23 @@ class BirdNeighbor:
         "routes_out",
     )
 
-    def __init__(self, **kwargs):
+    address_family: int
+    customer_as: int
+    customer_ip: str
+    md5_enabled: bool
+    md5_password: str
+    multihop: bool
+    peer_as: int
+    peer_ips: List[str]
+    routes_in: List[Dict[str, Any]]
+    routes_out: List[Dict[str, Any]]
+
+    def __init__(self, **kwargs: Any) -> None:
         self.__dict__.update(kwargs)
         if not self.validate():
             raise LookupError("Failed to validate bgp neighbor")
 
-    def validate(self):
+    def validate(self) -> bool:
         for field in BirdNeighbor.REQUIRED_FIELDS:
             if field not in self.__dict__:
                 return False
@@ -37,7 +48,7 @@ class BirdNeighbor:
 
 class Bird:
     @staticmethod
-    def http_fetch(url, headers={}, **kwargs):
+    def http_fetch(url: str, headers: Dict[str, str] = {}, **kwargs: Any) -> Any:
         response = requests.get(url, headers=headers, params=kwargs)
         try:
             response_payload = response.json()
@@ -54,7 +65,7 @@ class Bird:
                 status=response.status_code,
             )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.has_error = kwargs["has_error"] if "has_error" in kwargs else False
         self.msg = kwargs["msg"] if "msg" in kwargs else None
         self.status = kwargs["status"] if "status" in kwargs else None
@@ -65,7 +76,7 @@ class Bird:
         )
         self.config = self.render_config(self.build_config(), "bird.conf.j2").strip()
 
-    def build_config(self):
+    def build_config(self) -> Dict[str, Any]:
         import_count = 0
         export_count = 0
         router_id = None
@@ -87,7 +98,7 @@ class Bird:
             },
         }
 
-    def render_config(self, data, filename):
+    def render_config(self, data: Dict[str, Any], filename: str) -> str:
         script_dir = os.path.dirname(__file__)
         search_dir = os.path.join(script_dir, "templates")
         loader = jinja2.FileSystemLoader(searchpath=search_dir)
