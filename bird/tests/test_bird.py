@@ -1,6 +1,5 @@
 import json
 import re
-import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -14,12 +13,9 @@ SESSIONS_PER_TYPE: Dict[int, Dict[int, int]] = {
 }
 
 
-def initialize(main: bool = False) -> Tuple[Dict[int, Any], List[Any]]:
+def initialize() -> Tuple[Dict[int, Any], List[Any]]:
     current_dir = Path(__file__).parent.resolve()
     data_dir = current_dir.joinpath("data").resolve()
-    if main:
-        parent_dir = current_dir.parent.resolve()
-        sys.path.insert(0, str(parent_dir))
 
     test_data = {}
     ip_addresses = []
@@ -39,8 +35,8 @@ def initialize(main: bool = False) -> Tuple[Dict[int, Any], List[Any]]:
     return (test_data, ip_addresses)
 
 
-def test_Bird(main: bool = False) -> None:
-    test_data, ip_addresses = initialize(main=main)
+def test_Bird() -> None:
+    test_data, ip_addresses = initialize()
 
     from packet_bird import Bird
 
@@ -64,7 +60,3 @@ def test_Bird(main: bool = False) -> None:
                 assert SESSIONS_PER_TYPE[bgp_type][
                     bird.bgp_neighbors[i].address_family
                 ] == len(bird.bgp_neighbors[i].peer_ips)
-
-
-if __name__ == "__main__":
-    test_Bird(main=True)
