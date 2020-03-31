@@ -1,3 +1,6 @@
+TEST_ROOT=/opt/tests
+BIRD_PATH=$(TEST_ROOT)/bird
+
 .PHONY: clean-pyc
 clean-pyc:
 	-find . -name '*.pyc' -delete
@@ -9,10 +12,12 @@ clean-pyc:
 
 .PHONY: lint
 lint: clean-pyc
-	black --check /opt/tests
+	black --check $(TEST_ROOT)
 
 .PHONY: test-bird
 test-bird:
-	mypy /opt/tests/bird --config-file /opt/tests/bird/pytest.ini
+	pip install -r $(BIRD_PATH)/requirements.txt
+	mypy $(BIRD_PATH) --config-file $(BIRD_PATH)/pytest.ini
+	PYTHONPATH=$(BIRD_PATH) cd $(BIRD_PATH); python -m pytest --cov --pylama --verbose --color=yes
 
 all: lint test-bird

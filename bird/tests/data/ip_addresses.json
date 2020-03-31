@@ -1,0 +1,58 @@
+[
+  {
+    "address_family": 4,
+    "netmask": "255.255.255.254",
+    "public": true,
+    "cidr": 31,
+    "management": true,
+    "manageable": true,
+    "enabled": true,
+    "global_ip": null,
+    "customdata": {},
+    "network": "147.75.65.30",
+    "address": "147.75.65.31",
+    "gateway": "147.75.65.30"
+  },
+  {
+    "address_family": 6,
+    "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe",
+    "public": true,
+    "cidr": 127,
+    "management": true,
+    "manageable": true,
+    "enabled": true,
+    "global_ip": null,
+    "customdata": {},
+    "network": "2604:1380:1:5f00::",
+    "address": "2604:1380:1:5f00::1",
+    "gateway": "2604:1380:1:5f00::"
+  },
+  {
+    "address_family": 4,
+    "netmask": "255.255.255.254",
+    "public": false,
+    "cidr": 31,
+    "management": true,
+    "manageable": true,
+    "enabled": true,
+    "global_ip": null,
+    "customdata": {},
+    "network": "10.99.182.128",
+    "address": "10.99.182.129",
+    "gateway": "10.99.182.128"
+  },
+  {
+    "address_family": 4,
+    "netmask": "255.255.255.255",
+    "public": false,
+    "cidr": 32,
+    "management": false,
+    "manageable": true,
+    "enabled": true,
+    "global_ip": null,
+    "customdata": {},
+    "network": "10.99.182.254",
+    "address": "10.99.182.254",
+    "gateway": "10.99.182.254"
+  }
+]

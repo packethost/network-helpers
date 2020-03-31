@@ -15,5 +15,5 @@ if __name__ == "__main__":
     if API_TOKEN:
         headers["X-Auth-Token"] = API_TOKEN
 
-    r = Bird.http_fetch(HELPER_URL, headers=headers)
+    r = Bird.http_fetch_bgp(HELPER_URL, headers=headers)
     print(r.config)

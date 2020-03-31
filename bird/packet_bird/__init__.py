@@ -1,6 +1,4 @@
-import json
 import os
-import re
 from json.decoder import JSONDecodeError
 from typing import Any, Dict, List
 
@@ -48,7 +46,7 @@ class BirdNeighbor:
 
 class Bird:
     @staticmethod
-    def http_fetch(url: str, headers: Dict[str, str] = {}, **kwargs: Any) -> Any:
+    def http_fetch_bgp(url: str, headers: Dict[str, str] = {}, **kwargs: Any) -> Any:
         response = requests.get(url, headers=headers, params=kwargs)
         try:
             response_payload = response.json()
@@ -71,20 +69,28 @@ class Bird:
         self.status = kwargs["status"] if "status" in kwargs else None
         self.bgp_neighbors = (
             [BirdNeighbor(**neighbor) for neighbor in kwargs["bgp_neighbors"]]
-            if "bgp_neighbors" in kwargs.keys()
+            if "bgp_neighbors" in kwargs
             else []
         )
+        try:
+            self.ip_addresses = kwargs["network"]["addresses"]
+        except KeyError:
+            self.ip_addresses = []
         self.config = self.render_config(self.build_config(), "bird.conf.j2").strip()
 
     def build_config(self) -> Dict[str, Any]:
         import_count = 0
         export_count = 0
         router_id = None
-        for neighbor in self.bgp_neighbors:
-            import_count += len(neighbor.routes_in)
-            export_count += len(neighbor.routes_out)
-            if neighbor.address_family == 4:
-                router_id = neighbor.customer_ip
+
+        for address in self.ip_addresses:
+            if (
+                address["address_family"] == 4
+                and not address["public"]
+                and address["management"]
+            ):
+                router_id = address["address"]
+                break
 
         if not router_id:
             raise LookupError("Unable to determine router id")
@@ -106,7 +112,7 @@ class Bird:
 
         try:
             template = env.get_template(filename)
-        except jinja2.exceptions.TemplateNotFound as e:
+        except jinja2.exceptions.TemplateNotFound:
             return "Failed to locate configuration template"
 
         return template.render(data=data)
