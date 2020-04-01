@@ -16,6 +16,11 @@ RUN cd /root && \
     make && \
     make install
 
+RUN cd /root/bird-${RELEASE} && \
+    ./configure --enable-ipv6 && \
+    make && \
+    make install
+
 ADD . /opt/bird
 
 RUN pip install --upgrade pip && \

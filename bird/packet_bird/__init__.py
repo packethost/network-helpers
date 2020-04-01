@@ -1,6 +1,6 @@
 import os
 from json.decoder import JSONDecodeError
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import jinja2
 import requests
@@ -46,10 +46,45 @@ class BirdNeighbor:
 
 class Bird:
     @staticmethod
-    def http_fetch_bgp(url: str, headers: Dict[str, str] = {}, **kwargs: Any) -> Any:
+    def http_fetch_ip_addresses(
+        headers: Dict[str, str] = {}, instance: Union[str, None] = None, **kwargs: Any
+    ) -> Any:
+        url = "https://api.packet.net/devices/{}".format(instance)
         response = requests.get(url, headers=headers, params=kwargs)
         try:
             response_payload = response.json()
+            if "ip_addresses" not in response_payload:
+                return []
+            else:
+                return response_payload["ip_addresses"]
+        except JSONDecodeError:
+            return []
+
+    @staticmethod
+    def http_fetch_bgp(
+        use_metadata: bool = True,
+        headers: Dict[str, str] = {},
+        instance: Union[str, None] = None,
+        **kwargs: Any
+    ) -> Any:
+        url = "https://metadata.packet.net/metadata"
+        ip_addresses = []
+        if not use_metadata:
+            if not instance:
+                raise ValueError(
+                    "Instance ID must be specified when not using metadata"
+                )
+            url = "https://api.packet.net/devices/{}/bgp/neighbors".format(instance)
+            ip_addresses = Bird.http_fetch_ip_addresses(
+                headers=headers, instance=instance
+            )
+
+        response = requests.get(url, headers=headers, params=kwargs)
+
+        try:
+            response_payload = response.json()
+            if not use_metadata:
+                response_payload["network"] = {"addresses": ip_addresses}
             return Bird(
                 **response_payload,
                 has_error=False,
@@ -78,7 +113,7 @@ class Bird:
             self.ip_addresses = []
         self.config = self.render_config(self.build_config(), "bird.conf.j2").strip()
 
-    def build_config(self) -> Dict[str, Any]:
+    def build_config(self, family: int = 4) -> Dict[str, Any]:
         import_count = 0
         export_count = 0
         router_id = None
