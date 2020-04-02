@@ -23,7 +23,8 @@ if __name__ == "__main__":
         use_metadata=(USE_METADATA == "yes"), headers=headers, instance=INSTANCE_ID
     )
 
-    if "-6" in sys.argv[(sys.argv.index(__file__) + 1) :]:
+    arg_index = sys.argv.index(__file__) + 1
+    if "-6" in sys.argv[arg_index:]:
         if bird6.v6_peer_count > 0:
             print(bird6.config)
         else:

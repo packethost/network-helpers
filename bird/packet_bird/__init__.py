@@ -47,7 +47,7 @@ class BirdNeighbor:
 class Bird:
     @staticmethod
     def http_fetch_ip_addresses(
-        headers: Dict[str, str] = {}, instance: Optional = None
+        headers: Dict[str, str] = {}, instance: Optional[str] = None
     ) -> Any:
         url = "https://api.packet.net/devices/{}".format(instance)
         response = requests.get(url, headers=headers)
@@ -64,7 +64,7 @@ class Bird:
     def http_fetch_bgp(
         use_metadata: bool = True,
         headers: Dict[str, str] = {},
-        instance: Optional = None,
+        instance: Optional[str] = None,
     ) -> Any:
         url = "https://metadata.packet.net/metadata"
         ip_addresses = []
@@ -87,7 +87,7 @@ class Bird:
             return (Bird(**response_payload), Bird(family=6, **response_payload))
         except JSONDecodeError as e:
             raise JSONDecodeError(
-                "Unable to decode API/metadata response: {}".format(e)
+                "Unable to decode API/metadata response: {}".format(e.msg), e.doc, e.pos
             )
 
     def __init__(self, family: int = 4, **kwargs: Any) -> None:
