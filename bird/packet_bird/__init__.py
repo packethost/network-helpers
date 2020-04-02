@@ -1,6 +1,6 @@
 import os
 from json.decoder import JSONDecodeError
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional
 
 import jinja2
 import requests
@@ -47,10 +47,10 @@ class BirdNeighbor:
 class Bird:
     @staticmethod
     def http_fetch_ip_addresses(
-        headers: Dict[str, str] = {}, instance: Union[str, None] = None, **kwargs: Any
+        headers: Dict[str, str] = {}, instance: Optional = None
     ) -> Any:
         url = "https://api.packet.net/devices/{}".format(instance)
-        response = requests.get(url, headers=headers, params=kwargs)
+        response = requests.get(url, headers=headers)
         try:
             response_payload = response.json()
             if "ip_addresses" not in response_payload:
@@ -64,8 +64,7 @@ class Bird:
     def http_fetch_bgp(
         use_metadata: bool = True,
         headers: Dict[str, str] = {},
-        instance: Union[str, None] = None,
-        **kwargs: Any
+        instance: Optional = None,
     ) -> Any:
         url = "https://metadata.packet.net/metadata"
         ip_addresses = []
@@ -79,29 +78,30 @@ class Bird:
                 headers=headers, instance=instance
             )
 
-        response = requests.get(url, headers=headers, params=kwargs)
+        response = requests.get(url, headers=headers)
 
         try:
             response_payload = response.json()
             if not use_metadata:
                 response_payload["network"] = {"addresses": ip_addresses}
-            return Bird(
-                **response_payload,
-                has_error=False,
-                msg=None,
-                status=response.status_code
-            )
+            return (Bird(**response_payload), Bird(family=6, **response_payload))
         except JSONDecodeError as e:
-            return Bird(
-                has_error=True,
-                msg="Unable to decode response from server: {}".format(e),
-                status=response.status_code,
+            raise JSONDecodeError(
+                "Unable to decode API/metadata response: {}".format(e)
             )
 
-    def __init__(self, **kwargs: Any) -> None:
-        self.has_error = kwargs["has_error"] if "has_error" in kwargs else False
-        self.msg = kwargs["msg"] if "msg" in kwargs else None
-        self.status = kwargs["status"] if "status" in kwargs else None
+    def __init__(self, family: int = 4, **kwargs: Any) -> None:
+        self.bgp_neighbors = []
+        self.v4_peer_count = 0
+        self.v6_peer_count = 0
+        if "bgp_neighbors" in kwargs:
+            for neighbor in kwargs["bgp_neighbors"]:
+                self.bgp_neighbors.append(BirdNeighbor(**neighbor))
+                if neighbor["address_family"] == 4:
+                    self.v4_peer_count = len(neighbor["peer_ips"])
+                elif neighbor["address_family"] == 6:
+                    self.v6_peer_count = len(neighbor["peer_ips"])
+
         self.bgp_neighbors = (
             [BirdNeighbor(**neighbor) for neighbor in kwargs["bgp_neighbors"]]
             if "bgp_neighbors" in kwargs
@@ -111,13 +111,12 @@ class Bird:
             self.ip_addresses = kwargs["network"]["addresses"]
         except KeyError:
             self.ip_addresses = []
-        self.config = self.render_config(self.build_config(), "bird.conf.j2").strip()
+        self.config = self.render_config(
+            self.build_config(family), "bird.conf.j2"
+        ).strip()
 
-    def build_config(self, family: int = 4) -> Dict[str, Any]:
-        import_count = 0
-        export_count = 0
+    def build_config(self, family: int) -> Dict[str, Any]:
         router_id = None
-
         for address in self.ip_addresses:
             if (
                 address["address_family"] == 4
@@ -132,11 +131,7 @@ class Bird:
 
         return {
             "bgp_neighbors": [neighbor.__dict__ for neighbor in self.bgp_neighbors],
-            "meta": {
-                "import_count": import_count,
-                "export_count": export_count,
-                "router_id": router_id,
-            },
+            "meta": {"router_id": router_id, "family": family},
         }
 
     def render_config(self, data: Dict[str, Any], filename: str) -> str:

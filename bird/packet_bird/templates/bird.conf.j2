@@ -24,11 +24,8 @@ protocol kernel {
 protocol device {
   scan time 10; # Scan interfaces every 10 seconds
 }
-{%- if not (data.bgp_neighbors | length) %}
-# No bgp neighbors found; is this instance bgp enabled?
-{% else %}
 {% for group in data.bgp_neighbors %}
-{%- if group.address_family == 4 %}
+{%- if group.address_family == data.meta.family %}
 {%- for neighbor in group.peer_ips %}
 protocol bgp neighbor_v{{ group.address_family }}_{{ loop.index }} {
   export filter packet_bgp;
@@ -44,4 +41,3 @@ protocol bgp neighbor_v{{ group.address_family }}_{{ loop.index }} {
 {% endfor %}
 {%- endif %}
 {%- endfor %}
-{%- endif %}
