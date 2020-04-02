@@ -2,8 +2,9 @@ import os
 from json.decoder import JSONDecodeError
 from typing import Any, Dict, List, Optional
 
-import jinja2
 import requests
+from jinja2 import Environment, FileSystemLoader
+from jinja2.exceptions import TemplateNotFound
 
 
 class BirdNeighbor:
@@ -57,8 +58,12 @@ class Bird:
                 return []
             else:
                 return response_payload["ip_addresses"]
-        except JSONDecodeError:
-            return []
+        except JSONDecodeError as e:
+            raise JSONDecodeError(
+                "Unable to decode API/metadata response for {}. {}".format(url, e.msg),
+                e.doc,
+                e.pos,
+            )
 
     @staticmethod
     def http_fetch_bgp(
@@ -87,7 +92,9 @@ class Bird:
             return (Bird(**response_payload), Bird(family=6, **response_payload))
         except JSONDecodeError as e:
             raise JSONDecodeError(
-                "Unable to decode API/metadata response: {}".format(e.msg), e.doc, e.pos
+                "Unable to decode API/metadata response for {}. {}".format(url, e.msg),
+                e.doc,
+                e.pos,
             )
 
     def __init__(self, family: int = 4, **kwargs: Any) -> None:
@@ -137,12 +144,14 @@ class Bird:
     def render_config(self, data: Dict[str, Any], filename: str) -> str:
         script_dir = os.path.dirname(__file__)
         search_dir = os.path.join(script_dir, "templates")
-        loader = jinja2.FileSystemLoader(searchpath=search_dir)
-        env = jinja2.Environment(loader=loader)
+        loader = FileSystemLoader(searchpath=search_dir)
+        env = Environment(loader=loader)
 
         try:
             template = env.get_template(filename)
-        except jinja2.exceptions.TemplateNotFound:
-            return "Failed to locate configuration template"
+        except TemplateNotFound as e:
+            raise TemplateNotFound(
+                "Failed to locate bird's configuration template {}.".format(e.message)
+            )
 
         return template.render(data=data)
