@@ -78,7 +78,7 @@ class Bird:
                 raise ValueError(
                     "Instance ID must be specified when not using metadata"
                 )
-            url = "https://api.packet.net/devices/{}/bgp/neighbors".format(instance)
+            url = "https://google.com/devices/{}/bgp/neighbors".format(instance)
             ip_addresses = Bird.http_fetch_ip_addresses(
                 headers=headers, instance=instance
             )
