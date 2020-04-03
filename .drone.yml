@@ -1,0 +1,22 @@
+pipeline:
+  publish:
+    group: publish
+    image: plugins/docker
+    registry: quay.io
+    repo: quay.io/packet/network-helpers
+    force_tag: true
+    tags:
+      - ${DRONE_BUILD_NUMBER}-${DRONE_COMMIT_SHA}
+    secrets: [docker_username, docker_password]
+    
+  lint:
+    group: test
+    image: quay.io/packet/network-helpers:${DRONE_BUILD_NUMBER}-${DRONE_COMMIT_SHA}
+    commands:
+      - make lint
+
+  test_bird:
+    group: test
+    image: quay.io/packet/network-helpers:${DRONE_BUILD_NUMBER}-${DRONE_COMMIT_SHA}
+    commands:
+      - make test-bird

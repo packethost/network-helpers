@@ -11,10 +11,10 @@ An elastic IP address can simply be announced via Bird from the instance that is
 
 ### Example 1: Bird via Docker
 
-Using your OS's package management utility, install docker and docker-compose if not already installed. On Ubuntu 18.04 this looks like:
+Using your OS's package management utility, install docker, docker-compose and git if not already installed. On Ubuntu 18.04 this looks like:
 
 ```bash
-apt -y update && apt -y install docker docker-compose
+apt -y update && apt -y install docker docker-compose git
 systemctl enable docker && systemctl start docker
 ```
 

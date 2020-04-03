@@ -1,11 +1,10 @@
-import json
 import os
-import pprint
-import re
 from json.decoder import JSONDecodeError
+from typing import Any, Dict, List, Optional
 
-import jinja2
 import requests
+from jinja2 import Environment, FileSystemLoader
+from jinja2.exceptions import TemplateNotFound
 
 
 class BirdNeighbor:
@@ -22,12 +21,23 @@ class BirdNeighbor:
         "routes_out",
     )
 
-    def __init__(self, **kwargs):
+    address_family: int
+    customer_as: int
+    customer_ip: str
+    md5_enabled: bool
+    md5_password: str
+    multihop: bool
+    peer_as: int
+    peer_ips: List[str]
+    routes_in: List[Dict[str, Any]]
+    routes_out: List[Dict[str, Any]]
+
+    def __init__(self, **kwargs: Any) -> None:
         self.__dict__.update(kwargs)
         if not self.validate():
             raise LookupError("Failed to validate bgp neighbor")
 
-    def validate(self):
+    def validate(self) -> bool:
         for field in BirdNeighbor.REQUIRED_FIELDS:
             if field not in self.__dict__:
                 return False
@@ -37,65 +47,111 @@ class BirdNeighbor:
 
 class Bird:
     @staticmethod
-    def http_fetch(url, headers={}, **kwargs):
-        response = requests.get(url, headers=headers, params=kwargs)
+    def http_fetch_ip_addresses(
+        headers: Dict[str, str] = {}, instance: Optional[str] = None
+    ) -> Any:
+        url = "https://api.packet.net/devices/{}".format(instance)
+        response = requests.get(url, headers=headers)
         try:
             response_payload = response.json()
-            return Bird(
-                **response_payload,
-                has_error=False,
-                msg=None,
-                status=response.status_code
-            )
+            if "ip_addresses" not in response_payload:
+                return []
+            else:
+                return response_payload["ip_addresses"]
         except JSONDecodeError as e:
-            return Bird(
-                has_error=True,
-                msg="Unable to decode response from server: {}".format(e),
-                status=response.status_code,
+            raise JSONDecodeError(
+                "Unable to decode API/metadata response for {}. {}".format(url, e.msg),
+                e.doc,
+                e.pos,
             )
 
-    def __init__(self, **kwargs):
-        self.has_error = kwargs["has_error"] if "has_error" in kwargs else False
-        self.msg = kwargs["msg"] if "msg" in kwargs else None
-        self.status = kwargs["status"] if "status" in kwargs else None
+    @staticmethod
+    def http_fetch_bgp(
+        use_metadata: bool = True,
+        headers: Dict[str, str] = {},
+        instance: Optional[str] = None,
+    ) -> Any:
+        url = "https://metadata.packet.net/metadata"
+        ip_addresses = []
+        if not use_metadata:
+            if not instance:
+                raise ValueError(
+                    "Instance ID must be specified when not using metadata"
+                )
+            url = "https://google.com/devices/{}/bgp/neighbors".format(instance)
+            ip_addresses = Bird.http_fetch_ip_addresses(
+                headers=headers, instance=instance
+            )
+
+        response = requests.get(url, headers=headers)
+
+        try:
+            response_payload = response.json()
+            if not use_metadata:
+                response_payload["network"] = {"addresses": ip_addresses}
+            return (Bird(**response_payload), Bird(family=6, **response_payload))
+        except JSONDecodeError as e:
+            raise JSONDecodeError(
+                "Unable to decode API/metadata response for {}. {}".format(url, e.msg),
+                e.doc,
+                e.pos,
+            )
+
+    def __init__(self, family: int = 4, **kwargs: Any) -> None:
+        self.bgp_neighbors = []
+        self.v4_peer_count = 0
+        self.v6_peer_count = 0
+        if "bgp_neighbors" in kwargs:
+            for neighbor in kwargs["bgp_neighbors"]:
+                self.bgp_neighbors.append(BirdNeighbor(**neighbor))
+                if neighbor["address_family"] == 4:
+                    self.v4_peer_count = len(neighbor["peer_ips"])
+                elif neighbor["address_family"] == 6:
+                    self.v6_peer_count = len(neighbor["peer_ips"])
+
         self.bgp_neighbors = (
             [BirdNeighbor(**neighbor) for neighbor in kwargs["bgp_neighbors"]]
-            if "bgp_neighbors" in kwargs.keys()
+            if "bgp_neighbors" in kwargs
             else []
         )
-        self.config = self.render_config(self.build_config(), "bird.conf.j2").strip()
+        try:
+            self.ip_addresses = kwargs["network"]["addresses"]
+        except KeyError:
+            self.ip_addresses = []
+        self.config = self.render_config(
+            self.build_config(family), "bird.conf.j2"
+        ).strip()
 
-    def build_config(self):
-        import_count = 0
-        export_count = 0
+    def build_config(self, family: int) -> Dict[str, Any]:
         router_id = None
-        for neighbor in self.bgp_neighbors:
-            import_count += len(neighbor.routes_in)
-            export_count += len(neighbor.routes_out)
-            if neighbor.address_family == 4:
-                router_id = neighbor.customer_ip
+        for address in self.ip_addresses:
+            if (
+                address["address_family"] == 4
+                and not address["public"]
+                and address["management"]
+            ):
+                router_id = address["address"]
+                break
 
         if not router_id:
             raise LookupError("Unable to determine router id")
 
         return {
             "bgp_neighbors": [neighbor.__dict__ for neighbor in self.bgp_neighbors],
-            "meta": {
-                "import_count": import_count,
-                "export_count": export_count,
-                "router_id": router_id,
-            },
+            "meta": {"router_id": router_id, "family": family},
         }
 
-    def render_config(self, data, filename):
+    def render_config(self, data: Dict[str, Any], filename: str) -> str:
         script_dir = os.path.dirname(__file__)
         search_dir = os.path.join(script_dir, "templates")
-        loader = jinja2.FileSystemLoader(searchpath=search_dir)
-        env = jinja2.Environment(loader=loader)
+        loader = FileSystemLoader(searchpath=search_dir)
+        env = Environment(loader=loader)
 
         try:
             template = env.get_template(filename)
-        except jinja2.exceptions.TemplateNotFound as e:
-            return "Failed to locate configuration template"
+        except TemplateNotFound as e:
+            raise TemplateNotFound(
+                "Failed to locate bird's configuration template {}.".format(e.message)
+            )
 
         return template.render(data=data)
