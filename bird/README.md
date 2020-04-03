@@ -79,8 +79,14 @@ protocol bgp neighbor_v4_1 {
   neighbor 10.99.182.128 as 65530;
   password "somepassword";
 }
-+ bird -c /etc/bird/bird.conf -d
-bird: Started
++ '[' 0 == 0 ']'
++ echo
++ cat
++ supervisord -c /opt/bird/supervisord.conf
+2020-04-03 17:43:24,943 INFO Set uid to user 0 succeeded
+2020-04-03 17:43:24,945 INFO supervisord started with pid 12
+2020-04-03 17:43:25,951 INFO spawned: 'bird' with pid 16
+2020-04-03 17:43:26,955 INFO success: bird entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
 ```
 
 And verify:
@@ -111,6 +117,8 @@ neighbor_v4_1 BGP      master   up     16:10:27    Established
     Hold timer:       59/90
     Keepalive timer:  20/30
 ```
+
+**Note:** If you have bpg enabled over both ipv4 and ipv6 on your server, there will be separate running instances of the bird daemon for each protocol. Thus to verify an ipv6 peering session, in the above command you would use `birdc6` instead of `birdc`.
 
 In this case we only have a single elastic IP bound to interface lo, and we see the prefix is being exported and accepted so we are done.
 
