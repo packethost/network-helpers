@@ -1,35 +1,16 @@
 import os
 from typing import Any, Dict, List
 
-from helpers import BgpNeighbor
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
+from routers import Router
 
 
-class FRR:
+class FRR(Router):
     def __init__(self, family: int = 4, **kwargs: Any) -> None:
-        self.bgp_neighbors = []
-        self.v4_peer_count = 0
-        self.v6_peer_count = 0
-        if "bgp_neighbors" in kwargs:
-            for neighbor in kwargs["bgp_neighbors"]:
-                self.bgp_neighbors.append(BgpNeighbor(**neighbor))
-                if neighbor["address_family"] == 4:
-                    self.v4_peer_count = len(neighbor["peer_ips"])
-                elif neighbor["address_family"] == 6:
-                    self.v6_peer_count = len(neighbor["peer_ips"])
-
-        self.bgp_neighbors = (
-            [BgpNeighbor(**neighbor) for neighbor in kwargs["bgp_neighbors"]]
-            if "bgp_neighbors" in kwargs
-            else []
-        )
-        try:
-            self.ip_addresses = kwargs["network"]["addresses"]
-        except KeyError:
-            self.ip_addresses = []
+        super().__init__(family=family, **kwargs)
         self.config = self.render_config(
-            self.build_config(family), "bird.conf.j2"
+            self.build_config(self.family), "frr.conf.j2"
         ).strip()
 
     def build_config(self, family: int) -> Dict[str, Any]:
@@ -46,9 +27,15 @@ class FRR:
         if not router_id:
             raise LookupError("Unable to determine router id")
 
+        bgp_neighbors_per_asn = {}
+        for neighbor in self.bgp_neighbors:
+            if neighbor.customer_as not in bgp_neighbors_per_asn:
+                bgp_neighbors_per_asn[neighbor.customer_as] = []
+            bgp_neighbors_per_asn[neighbor.customer_as].append(neighbor.__dict__)
+
         return {
-            "bgp_neighbors": [neighbor.__dict__ for neighbor in self.bgp_neighbors],
-            "meta": {"router_id": router_id, "family": family},
+            "bgp_neighbors": bgp_neighbors_per_asn,
+            "meta": {"router_id": router_id, "family": self.family},
         }
 
     def render_config(self, data: Dict[str, Any], filename: str) -> str:
@@ -61,7 +48,7 @@ class FRR:
             template = env.get_template(filename)
         except TemplateNotFound as e:
             raise TemplateNotFound(
-                "Failed to locate bird's configuration template {}.".format(e.message)
+                "Failed to locate frr's configuration template {}.".format(e.message)
             )
 
         return template.render(data=data)

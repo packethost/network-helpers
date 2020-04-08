@@ -1,8 +1,8 @@
 from typing import Any, Dict
 
 import pytest
-from bird import Bird
-from tests.data import INVALID_RESPONSES, initialize
+from routers.bird import Bird
+from routers.bird.tests.data import INVALID_RESPONSES, initialize
 
 VALID_RESPONSES = initialize()
 

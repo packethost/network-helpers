@@ -4,6 +4,7 @@ import os
 import sys
 
 from routers.bird import Bird
+from routers.frr import FRR
 from routers.helpers import fetch_bgp
 
 USE_METADATA = os.getenv("USE_METADATA", "yes")
@@ -50,6 +51,7 @@ if __name__ == "__main__":  # noqa: C901
         else:
             sys.exit("BGP over IPv6 is not enabled")
     elif args.router == "frr":
-        raise NotImplementedError
+        frr = FRR(**bgp)
+        print(frr.config)
     else:
         sys.exit("Unrecognized routing daemon specified")

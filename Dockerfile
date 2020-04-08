@@ -10,4 +10,6 @@ RUN mkdir /opt/tests
 ADD . /opt/tests
 WORKDIR /opt/tests
 
+RUN pip install -e ./
+
 CMD ["make", "all"]
