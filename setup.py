@@ -1,10 +1,10 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(
     name="routers",
     description="Various packages for auto-configuring Linux routing daemons",
     author="Packethost",
-    packages=["helpers", "bird", "frr"],
+    packages=find_packages(),
     install_requires=[
         "Jinja2 >= 2.11.1",
         "MarkupSafe >= 1.1.1",

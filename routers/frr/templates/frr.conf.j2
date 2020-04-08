@@ -1,0 +1,35 @@
+frr version 7.2.1
+frr defaults traditional
+log syslog informational
+service integrated-vtysh-config
+!
+router bgp 54825
+ bgp ebgp-requires-policy
+ neighbor BSR peer-group
+ neighbor BSR remote-as 54825
+ neighbor V6-BSR peer-group
+ neighbor V6-BSR remote-as 54825
+ {% for address in ipv4_peers -%}
+ neighbor {{ address }} peer-group BSR
+ {% endfor -%}
+ {% for address in ipv6_peers -%}
+ neighbor {{ address }} peer-group V6-BSR
+ {% endfor -%}
+ !
+ address-family ipv4 unicast
+  neighbor BSR route-map IMPORT in
+  neighbor BSR route-map EXPORT out
+ exit-address-family
+ !
+ address-family ipv6 unicast
+  neighbor V6-BSR activate
+  neighbor V6-BSR route-map IMPORT in
+  neighbor V6-BSR route-map EXPORT out
+ exit-address-family
+!
+route-map EXPORT deny 1
+!
+route-map IMPORT permit 1
+!
+line vty
+!

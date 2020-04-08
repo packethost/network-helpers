@@ -18,17 +18,15 @@ RUN cd /root/bird-${RELEASE} && \
     make && \
     make install
 
-ADD . /opt/routers
-ADD ./bird/supervisord.conf /opt/routers/supervisord.conf
-ADD ./bird/entrypoint.sh /opt/routers/entrypoint.sh
+ADD . /opt/bgp
+
+WORKDIR /opt/bgp
 
 RUN pip3 install --upgrade pip setuptools && \
-    pip3 install -e /opt/routers/
+    pip3 install -e /opt/bgp/
 
 RUN mkdir /etc/bird
 
-WORKDIR /opt/routers
-
 EXPOSE 179
 
-ENTRYPOINT ["/opt/routers/entrypoint.sh"]
+ENTRYPOINT ["/opt/bgp/routers/bird/entrypoint.sh"]

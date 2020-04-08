@@ -3,8 +3,8 @@ import argparse
 import os
 import sys
 
-from bird import Bird
-from helpers import fetch_bgp
+from routers.bird import Bird
+from routers.helpers import fetch_bgp
 
 USE_METADATA = os.getenv("USE_METADATA", "yes")
 API_TOKEN = os.getenv("API_TOKEN", None)

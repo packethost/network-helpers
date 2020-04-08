@@ -1,9 +1,9 @@
 import os
 from typing import Any, Dict, List
 
-from helpers import BgpNeighbor
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
+from routers.helpers import BgpNeighbor
 
 
 class Bird:
