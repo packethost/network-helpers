@@ -4,5 +4,5 @@ This repo contains a collection of helper scripts for installing and configuring
 
 ### BGP helpers
 
-* [Bird](bird/README.md)
-* [FRR](frr/README.md)
+* [Bird](routers/bird/README.md)
+* [FRR](routers/frr/README.md)
