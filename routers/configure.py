@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import os
-import re
 import sys
 
 from bird import Bird
@@ -11,7 +10,7 @@ USE_METADATA = os.getenv("USE_METADATA", "yes")
 API_TOKEN = os.getenv("API_TOKEN", None)
 INSTANCE_ID = os.getenv("INSTANCE_ID", None)
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # noqa: C901
     if USE_METADATA != "yes":
         if not API_TOKEN:
             sys.exit("Packet API token missing from environment")
