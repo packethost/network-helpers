@@ -21,6 +21,7 @@ RUN cd /root/bird-${RELEASE} && \
 ADD ./bird /opt/routers/bird
 ADD ./helpers /opt/routers/helpers
 ADD ./configure.py /opt/routers/configure.py
+ADD ./bird/supervisord.conf /opt/routers/supervisord.conf
 ADD ./bird/entrypoint.sh /opt/routers/entrypoint.sh
 
 RUN pip3 install --upgrade pip && \
