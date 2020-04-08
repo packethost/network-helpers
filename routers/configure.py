@@ -51,3 +51,5 @@ if __name__ == "__main__":  # noqa: C901
             sys.exit("BGP over IPv6 is not enabled")
     elif args.router == "frr":
         raise NotImplementedError
+    else:
+        sys.exit("Unrecognized routing daemon specified")

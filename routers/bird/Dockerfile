@@ -18,14 +18,16 @@ RUN cd /root/bird-${RELEASE} && \
     make && \
     make install
 
-ADD . /opt/bird
+ADD ./bird /opt/routers/bird
+ADD ./helpers /opt/routers/helpers
+ADD ./configure.py /opt/routers
 
 RUN pip3 install --upgrade pip && \
-    pip3 install -r /opt/bird/requirements.txt
+    pip3 install -r /opt/routers/bird/requirements.txt
 
 RUN mkdir /etc/bird
 
-WORKDIR /opt/bird
+WORKDIR /opt/routers
 
 EXPOSE 179
 
