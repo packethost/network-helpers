@@ -1,8 +1,6 @@
 import os
-from json.decoder import JSONDecodeError
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-import requests
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 
@@ -46,57 +44,6 @@ class BirdNeighbor:
 
 
 class Bird:
-    @staticmethod
-    def http_fetch_ip_addresses(
-        headers: Dict[str, str] = {}, instance: Optional[str] = None
-    ) -> Any:
-        url = "https://api.packet.net/devices/{}".format(instance)
-        response = requests.get(url, headers=headers)
-        try:
-            response_payload = response.json()
-            if "ip_addresses" not in response_payload:
-                return []
-            else:
-                return response_payload["ip_addresses"]
-        except JSONDecodeError as e:
-            raise JSONDecodeError(
-                "Unable to decode API/metadata response for {}. {}".format(url, e.msg),
-                e.doc,
-                e.pos,
-            )
-
-    @staticmethod
-    def http_fetch_bgp(
-        use_metadata: bool = True,
-        headers: Dict[str, str] = {},
-        instance: Optional[str] = None,
-    ) -> Any:
-        url = "https://metadata.packet.net/metadata"
-        ip_addresses = []
-        if not use_metadata:
-            if not instance:
-                raise ValueError(
-                    "Instance ID must be specified when not using metadata"
-                )
-            url = "https://google.com/devices/{}/bgp/neighbors".format(instance)
-            ip_addresses = Bird.http_fetch_ip_addresses(
-                headers=headers, instance=instance
-            )
-
-        response = requests.get(url, headers=headers)
-
-        try:
-            response_payload = response.json()
-            if not use_metadata:
-                response_payload["network"] = {"addresses": ip_addresses}
-            return (Bird(**response_payload), Bird(family=6, **response_payload))
-        except JSONDecodeError as e:
-            raise JSONDecodeError(
-                "Unable to decode API/metadata response for {}. {}".format(url, e.msg),
-                e.doc,
-                e.pos,
-            )
-
     def __init__(self, family: int = 4, **kwargs: Any) -> None:
         self.bgp_neighbors = []
         self.v4_peer_count = 0

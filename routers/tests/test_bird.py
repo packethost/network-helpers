@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 import pytest
-from packet_bird import Bird
+from bird import Bird
 from tests.data import INVALID_RESPONSES, initialize
 
 VALID_RESPONSES = initialize()

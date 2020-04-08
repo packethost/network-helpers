@@ -1,5 +1,6 @@
 TEST_ROOT=/opt/tests
-BIRD_PATH=$(TEST_ROOT)/bird
+ROUTERS_PATH=$(TEST_ROOT)/routers
+BIRD_PATH=$(TEST_ROOT)/routers/bird
 
 .PHONY: clean-pyc
 clean-pyc:
@@ -17,7 +18,7 @@ lint: clean-pyc
 .PHONY: test-bird
 test-bird:
 	pip install -r $(BIRD_PATH)/requirements.txt
-	mypy $(BIRD_PATH) --config-file $(BIRD_PATH)/pytest.ini
-	PYTHONPATH=$(BIRD_PATH) cd $(BIRD_PATH); python -m pytest --cov --pylama --verbose --color=yes
+	mypy $(BIRD_PATH) --config-file $(ROUTERS_PATH)/pytest.ini
+	PYTHONPATH=$(BIRD_PATH) cd $(ROUTERS_PATH); python -m pytest --cov --pylama --verbose --color=yes
 
 all: lint test-bird
