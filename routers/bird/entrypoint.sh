@@ -7,8 +7,8 @@ set -eux
 
 /opt/bgp/configure.py -r bird | tee /etc/bird/bird.conf
 if [ ${PIPESTATUS[0]} == 0 ]; then
-    echo >> /opt/bgp/supervisord.conf
-    cat << EOF >> /opt/bgp/supervisord.conf
+    echo >> /opt/bgp/routers/bird/supervisord.conf
+    cat << EOF >> /opt/bgp/routers/bird/supervisord.conf
 [program:bird]
 command = bird -c /etc/bird/bird.conf -d
 user = root
@@ -23,8 +23,8 @@ fi
 
 /opt/bgp/configure.py -r bird6 | tee /etc/bird/bird6.conf
 if [ ${PIPESTATUS[0]} == 0 ]; then
-    echo >> /opt/bgp/supervisord.conf
-    cat << EOF >> /opt/bgp/supervisord.conf
+    echo >> /opt/bgp/routers/bird/supervisord.conf
+    cat << EOF >> /opt/bgp/routers/bird/supervisord.conf
 [program:bird6]
 command = bird6 -c /etc/bird/bird6.conf -d
 user = root
@@ -33,9 +33,9 @@ sterr_logfile = /proc/1/fd/2
 stdout_logfile_maxbytes = 0
 stderr_logfile_maxbytes = 0
 EOF
-    echo >> /opt/bgp/supervisord.conf
+    echo >> /opt/bgp/routers/bird/supervisord.conf
 else
     rm -vf /etc/bird/bird6.conf
 fi
 
-supervisord -c /opt/bgp/supervisord.conf
+supervisord -c /opt/bgp/routers/bird/supervisord.conf
