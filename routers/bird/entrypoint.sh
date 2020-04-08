@@ -5,7 +5,7 @@ set -eux
 # We should only start bird and bird6 if bgp over ipv4 and
 # ipv6 is respectively enabled
 
-/opt/bird/configure.py | tee /etc/bird/bird.conf
+/opt/bird/configure.py bird | tee /etc/bird/bird.conf
 if [ ${PIPESTATUS[0]} == 0 ]; then
     echo >> /opt/bird/supervisord.conf
     cat << EOF >> /opt/bird/supervisord.conf
@@ -21,7 +21,7 @@ else
     rm -vf /etc/bird/bird.conf
 fi
 
-/opt/bird/configure.py -6 | tee /etc/bird/bird6.conf
+/opt/bird/configure.py bird6 | tee /etc/bird/bird6.conf
 if [ ${PIPESTATUS[0]} == 0 ]; then
     echo >> /opt/bird/supervisord.conf
     cat << EOF >> /opt/bird/supervisord.conf

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import argparse
 import os
+import re
 import sys
 
 from bird import Bird
@@ -9,13 +11,24 @@ USE_METADATA = os.getenv("USE_METADATA", "yes")
 API_TOKEN = os.getenv("API_TOKEN", None)
 INSTANCE_ID = os.getenv("INSTANCE_ID", None)
 
-
 if __name__ == "__main__":
     if USE_METADATA != "yes":
         if not API_TOKEN:
             sys.exit("Packet API token missing from environment")
         if not INSTANCE_ID:
             sys.exit("Instance ID missing from environment")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-r",
+        "--router",
+        help="the routing daemon to be configured",
+        action="store",
+        type=str,
+        choices=["bird", "bird6", "frr"],
+        required=True,
+    )
+    args = parser.parse_args()
 
     headers = {}
     if API_TOKEN:
@@ -25,16 +38,17 @@ if __name__ == "__main__":
         use_metadata=(USE_METADATA == "yes"), headers=headers, instance=INSTANCE_ID
     )
 
-    arg_index = sys.argv.index(__file__) + 1
-    if "-6" in sys.argv[arg_index:]:
-        bird6 = Bird(family=6, **bgp)
-        if bird6.v6_peer_count > 0:
-            print(bird6.config)
-        else:
-            sys.exit("BGP over IPv6 is not enabled")
-    else:
+    if args.router == "bird":
         bird = Bird(**bgp)
         if bird.v4_peer_count > 0:
             print(bird.config)
         else:
             sys.exit("BGP over IPv4 is not enabled")
+    elif args.router == "bird6":
+        bird6 = Bird(family=6, **bgp)
+        if bird6.v6_peer_count > 0:
+            print(bird6.config)
+        else:
+            sys.exit("BGP over IPv6 is not enabled")
+    elif args.router == "frr":
+        raise NotImplementedError
