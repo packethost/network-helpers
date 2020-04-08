@@ -18,14 +18,12 @@ RUN cd /root/bird-${RELEASE} && \
     make && \
     make install
 
-ADD ./bird /opt/routers/bird
-ADD ./helpers /opt/routers/helpers
-ADD ./configure.py /opt/routers/configure.py
+ADD . /opt/routers
 ADD ./bird/supervisord.conf /opt/routers/supervisord.conf
 ADD ./bird/entrypoint.sh /opt/routers/entrypoint.sh
 
-RUN pip3 install --upgrade pip && \
-    pip3 install -r /opt/routers/bird/requirements.txt
+RUN pip3 install --upgrade pip setuptools && \
+    pip3 install -e /opt/routers/
 
 RUN mkdir /etc/bird
 
