@@ -20,7 +20,8 @@ RUN cd /root/bird-${RELEASE} && \
 
 ADD ./bird /opt/routers/bird
 ADD ./helpers /opt/routers/helpers
-ADD ./configure.py /opt/routers
+ADD ./configure.py /opt/routers/configure.py
+ADD ./bird/entrypoint.sh /opt/routers/entrypoint.sh
 
 RUN pip3 install --upgrade pip && \
     pip3 install -r /opt/routers/bird/requirements.txt
@@ -31,4 +32,4 @@ WORKDIR /opt/routers
 
 EXPOSE 179
 
-ENTRYPOINT ["/opt/bird/entrypoint.sh"]
+ENTRYPOINT ["/opt/routers/entrypoint.sh"]
