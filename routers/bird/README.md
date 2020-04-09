@@ -91,7 +91,7 @@ protocol bgp neighbor_v4_1 {
   export filter packet_bgp;
   local as 65000;
   neighbor 10.99.182.128 as 65530;
-  password "mVmi1WL6N6SiWhm";
+  password "somepassword";
 }
 + '[' 0 == 0 ']'
 + echo
