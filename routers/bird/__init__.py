@@ -29,7 +29,7 @@ class Bird(Router):
             raise LookupError("Unable to determine router id")
 
         return {
-            "bgp_neighbors": [neighbor.__dict__ for neighbor in self.bgp_neighbors],
+            "bgp_neighbors": [neighbor._asdict() for neighbor in self.bgp_neighbors],
             "meta": {"router_id": router_id, "family": self.family},
         }
 

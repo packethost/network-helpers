@@ -26,7 +26,7 @@ class FRR(Router):
                 ipv6_multi_hop = True
             if neighbor.customer_as not in bgp_neighbors_per_asn:
                 bgp_neighbors_per_asn[neighbor.customer_as] = []
-            bgp_neighbors_per_asn[neighbor.customer_as].append(neighbor.__dict__)
+            bgp_neighbors_per_asn[neighbor.customer_as].append(neighbor._asdict())
 
         ipv4_next_hop = None
         ipv6_next_hop = None

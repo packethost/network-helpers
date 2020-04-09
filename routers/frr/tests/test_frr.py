@@ -21,7 +21,7 @@ VALID_RESPONSES = initialize()
         (INVALID_RESPONSES[1], ValueError, "invalid"),  # Json response without bgp data
         (
             INVALID_RESPONSES[2],
-            LookupError,
+            TypeError,
             "invalid",
         ),  # Json response with missing fields in bgp_neighbors
         (
