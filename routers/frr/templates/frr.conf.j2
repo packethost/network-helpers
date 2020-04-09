@@ -8,6 +8,9 @@ router bgp {{ asn }}
  {%- for group in neighbor %}
  neighbor V{{ group.address_family }} peer-group
  neighbor V{{ group.address_family }} remote-as {{ group.peer_as }}
+ {%- if group.md5_enabled %}
+ neighbor V{{ group.address_family }} password {{ group.md5_password }}
+ {%- endif %}
  {%- for address in group.peer_ips %}
  neighbor {{ address }} peer-group V{{ group.address_family }}
  {%- endfor -%}
