@@ -7,35 +7,52 @@ from routers import Router
 
 
 class FRR(Router):
-    def __init__(self, family: int = 4, **kwargs: Any) -> None:
-        super().__init__(family=family, **kwargs)
-        self.config = self.render_config(
-            self.build_config(self.family), "frr.conf.j2"
-        ).strip()
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.config = self.render_config(self.build_config(), "frr.conf.j2").strip()
 
-    def build_config(self, family: int) -> Dict[str, Any]:
-        router_id = None
-        for address in self.ip_addresses:
-            if (
-                address["address_family"] == 4
-                and not address["public"]
-                and address["management"]
-            ):
-                router_id = address["address"]
-                break
-
-        if not router_id:
-            raise LookupError("Unable to determine router id")
-
+    def build_config(self) -> Dict[str, Any]:
+        ipv4_multi_hop = False
+        ipv6_multi_hop = False
         bgp_neighbors_per_asn = {}
         for neighbor in self.bgp_neighbors:
+            if neighbor.multihop and neighbor.address_family == 4:
+                ipv4_multi_hop = True
+            if neighbor.multihop and neighbor.address_family == 6:
+                ipv6_multi_hop = True
             if neighbor.customer_as not in bgp_neighbors_per_asn:
                 bgp_neighbors_per_asn[neighbor.customer_as] = []
             bgp_neighbors_per_asn[neighbor.customer_as].append(neighbor.__dict__)
 
+        ipv4_next_hop = None
+        ipv6_next_hop = None
+        if ipv4_multi_hop:
+            for address in self.ip_addresses:
+                if (
+                    address["address_family"] == 4
+                    and address["public"]
+                    and address["management"]
+                ):
+                    ipv4_next_hop = address["gateway"]
+                    break
+        if ipv6_multi_hop:
+            for address in self.ip_addresses:
+                if (
+                    address["address_family"] == 6
+                    and address["public"]
+                    and address["management"]
+                ):
+                    ipv6_next_hop = address["gateway"]
+                    break
+
+        if ipv4_multi_hop and not ipv4_next_hop:
+            raise LookupError("Unable to determine IPv4 next hop for multihop peer")
+        if ipv6_multi_hop and not ipv6_next_hop:
+            raise LookupError("Unable to determine IPv6 next hop for multihop peer")
+
         return {
             "bgp_neighbors": bgp_neighbors_per_asn,
-            "meta": {"router_id": router_id, "family": self.family},
+            "meta": {"ipv4_next_hop": ipv4_next_hop, "ipv6_next_hop": ipv6_next_hop},
         }
 
     def render_config(self, data: Dict[str, Any], filename: str) -> str:

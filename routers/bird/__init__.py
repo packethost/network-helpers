@@ -8,7 +8,8 @@ from routers import Router
 
 class Bird(Router):
     def __init__(self, family: int = 4, **kwargs: Any) -> None:
-        super().__init__(family=family, **kwargs)
+        super().__init__(**kwargs)
+        self.family = family
         self.config = self.render_config(
             self.build_config(self.family), "bird.conf.j2"
         ).strip()

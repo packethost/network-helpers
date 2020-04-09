@@ -3,6 +3,22 @@ log syslog informational
 ipv6 forwarding
 service integrated-vtysh-config
 !
+{%- for neighbor in data.bgp_neighbors.values() %}
+{%- for group in neighbor %}
+{%- if group.multihop %}
+{%- if group.address_family == 4 %}
+{%- for address in group.peer_ips %}
+ip route {{ address }}/32 {{ data.meta.ipv4_next_hop }}
+{%- endfor %}
+{%- else %}
+{%- for address in group.peer_ips %}
+ipv6 route {{ address }}/32 {{ data.meta.ipv6_next_hop }}
+{%- endfor %}
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
+!
 {%- for asn, neighbor in data.bgp_neighbors.items() %}
 router bgp {{ asn }}
  bgp ebgp-requires-policy
@@ -13,7 +29,7 @@ router bgp {{ asn }}
  neighbor V{{ group.address_family }} password {{ group.md5_password }}
  {%- endif %}
  {%- if group.multihop %}
- neighbor V{{ group.address_family }} ebgp-multihop 255
+ neighbor V{{ group.address_family }} ebgp-multihop 5
  {%- endif %}
  {%- for address in group.peer_ips %}
  neighbor {{ address }} peer-group V{{ group.address_family }}

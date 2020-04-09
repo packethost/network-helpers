@@ -40,8 +40,7 @@ class BgpNeighbor:
 
 
 class Router:
-    def __init__(self, family: int = 4, **kwargs: Any) -> None:
-        self.family = family
+    def __init__(self, **kwargs: Any) -> None:
         self.bgp_neighbors = []
         self.v4_peer_count = 0
         self.v6_peer_count = 0
