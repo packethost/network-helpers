@@ -9,6 +9,21 @@ An elastic IP address can simply be announced via Bird from the instance that is
 * A BGP enabled project and instance
 * An elastic IP configured on interface lo
 
+The former can be accomplished via the Packet client portal while the latter can be done via the following two commands:
+
+```bash
+echo 'auto lo:0
+  iface lo:0 inet static
+  address 10.99.182.254
+  netmask 255.255.255.255' >> /etc/network/interfaces
+```
+
+In the above command, you will replace `10.99.182.254` with your own elastic IP. Then simply bring up interface `lo:0`:
+
+```bash
+ifup lo:0
+```
+
 ### Example 1: Bird via Docker
 
 Using your OS's package management utility, install docker, docker-compose and git if not already installed. On Ubuntu 18.04 this looks like:
