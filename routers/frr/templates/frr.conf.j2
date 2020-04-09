@@ -1,5 +1,6 @@
 frr defaults traditional
 log syslog informational
+ipv6 forwarding
 service integrated-vtysh-config
 !
 {%- for asn, neighbor in data.bgp_neighbors.items() %}
@@ -11,6 +12,9 @@ router bgp {{ asn }}
  {%- if group.md5_enabled %}
  neighbor V{{ group.address_family }} password {{ group.md5_password }}
  {%- endif %}
+ {%- if group.multihop %}
+ neighbor V{{ group.address_family }} ebgp-multihop 255
+ {%- endif %}
  {%- for address in group.peer_ips %}
  neighbor {{ address }} peer-group V{{ group.address_family }}
  {%- endfor -%}
@@ -18,6 +22,7 @@ router bgp {{ asn }}
  !
  {%- for group in neighbor %}
  address-family ipv{{ group.address_family }} unicast
+  redistribute connected
   {%- if group.address_family == 6 %}
   neighbor V{{ group.address_family }} activate
   {%- endif %}
@@ -27,7 +32,10 @@ router bgp {{ asn }}
  !
  {%- endfor %}
 {%- endfor %}
+route-map EXPORT deny 100
+!
 route-map EXPORT permit 1
+ match interface lo
 !
 route-map IMPORT deny 1
 !
