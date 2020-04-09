@@ -12,6 +12,8 @@ RUN apt-get update && \
 ADD . /opt/bgp
 ADD ./routers/frr/daemons /etc/frr/daemons
 
+RUN chown -Rv frr:frr /etc/frr
+
 WORKDIR /opt/bgp
 
 RUN pip3 install --upgrade pip setuptools && \
