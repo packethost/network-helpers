@@ -28,23 +28,22 @@ git clone https://github.com/packethost/network-helpers.git
 Build the image:
 
 ```bash
-cd network-helpers/bird
-docker build -t local/bird:latest .
+cd network-helpers
+docker build -f routers/bird/Dockerfile -t local/bird:latest .
 ```
 
 Up the container:
 
-```
+```bash
+cd routers/bird
 docker-compose up -d
-Creating bird ... 
-Creating bird ... done
 ```
 
 To verify that the bird service was started cleanly and correctly, we can view the container logs:
 
 ```
 docker logs $(docker ps | awk '$2 == "local/bird:latest" {print $1}')
-+ /opt/bird/configure.py
++ /opt/bgp/configure.py -r bird
 + tee /etc/bird/bird.conf
 filter packet_bgp {
   # the IP range(s) to announce via BGP from this machine
@@ -77,16 +76,17 @@ protocol bgp neighbor_v4_1 {
   export filter packet_bgp;
   local as 65000;
   neighbor 10.99.182.128 as 65530;
-  password "somepassword";
+  password "mVmi1WL6N6SiWhm";
 }
 + '[' 0 == 0 ']'
 + echo
 + cat
-+ supervisord -c /opt/bird/supervisord.conf
-2020-04-03 17:43:24,943 INFO Set uid to user 0 succeeded
-2020-04-03 17:43:24,945 INFO supervisord started with pid 12
-2020-04-03 17:43:25,951 INFO spawned: 'bird' with pid 16
-2020-04-03 17:43:26,955 INFO success: bird entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
++ supervisord -c /opt/bgp/routers/bird/supervisord.conf
+2020-04-09 13:44:27,263 WARN For [program:bird], AUTO logging used for stderr_logfile without rollover, set maxbytes > 0 to avoid filling up filesystem unintentionally
+2020-04-09 13:44:27,263 INFO Set uid to user 0 succeeded
+2020-04-09 13:44:27,265 INFO supervisord started with pid 12
+2020-04-09 13:44:28,270 INFO spawned: 'bird' with pid 16
+2020-04-09 13:44:29,274 INFO success: bird entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
 ```
 
 And verify:
@@ -135,14 +135,14 @@ Now clone the repo and install remaining python dependencies:
 ```bash
 cd /opt
 git clone https://github.com/packethost/network-helpers.git
-cd network-helpers/bird
-pip3 install jinja2 requests
+cd network-helpers
+pip3 install -e .
 ```
 
 Now use the `configure.py` script to configure bird:
 
 ```
-./configure.py | tee /etc/bird/bird.conf
+./configure.py -r bird | tee /etc/bird/bird.conf
 filter packet_bgp {
   # the IP range(s) to announce via BGP from this machine
   # these IP addresses need to be bound to the lo interface
