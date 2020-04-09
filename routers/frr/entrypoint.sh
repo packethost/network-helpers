@@ -4,9 +4,7 @@ set -ux
 
 /opt/bgp/configure.py -r frr | tee /etc/frr/frr.conf
 
-if [ ${PIPESTATUS[0]} != 0 ]; then
-    rm -vf /etc/frr/frr.conf
-    exit(1)
-fi
+[ ${PIPESTATUS[0]} != 0 ] && exit ${PIPESTATUS[0]}
 
-supervisord -c /opt/bgp/routers/frr/supervisord.conf
+/etc/init.d/frr start
+exec sleep 10000d

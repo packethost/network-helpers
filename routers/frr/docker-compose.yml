@@ -1,0 +1,12 @@
+version: '2'
+services:
+
+  bird:
+    image: local/frr:latest
+    container_name: frr
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "179:179"
+    hostname: frr
