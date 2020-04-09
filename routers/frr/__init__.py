@@ -9,13 +9,17 @@ from routers import Router
 class FRR(Router):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
+        if not self.bgp_neighbors:
+            raise ValueError("At least one bgp neighbor is required")
         self.config = self.render_config(self.build_config(), "frr.conf.j2").strip()
 
-    def build_config(self) -> Dict[str, Any]:
+    def build_config(self) -> Dict[str, Any]:  # noqa: C901
         ipv4_multi_hop = False
         ipv6_multi_hop = False
-        bgp_neighbors_per_asn = {}
+        bgp_neighbors_per_asn: Dict[int, List[Any]] = {}
         for neighbor in self.bgp_neighbors:
+            if not neighbor.peer_ips:
+                raise ValueError("At least one peer ip per bgp group is required")
             if neighbor.multihop and neighbor.address_family == 4:
                 ipv4_multi_hop = True
             if neighbor.multihop and neighbor.address_family == 6:

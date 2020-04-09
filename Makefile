@@ -21,4 +21,9 @@ test-bird:
 	mypy $(BIRD_PATH) --config-file $(BIRD_PATH)/pytest.ini
 	cd $(BIRD_PATH); python -m pytest --cov --pylama --verbose --color=yes
 
-all: lint test-bird
+.PHONY: test-frr
+test-frr:
+	mypy $(FRR_PATH) --config-file $(FRR_PATH)/pytest.ini
+	cd $(FRR_PATH); python -m pytest --cov --pylama --verbose --color=yes
+
+all: lint test-bird test-frr

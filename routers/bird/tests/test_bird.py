@@ -2,7 +2,8 @@ from typing import Any, Dict
 
 import pytest
 from routers.bird import Bird
-from routers.bird.tests.data import INVALID_RESPONSES, initialize
+from routers.bird.tests.data import INVALID_RESPONSES
+from routers.test_data import initialize
 
 VALID_RESPONSES = initialize()
 
@@ -53,5 +54,6 @@ def test_Bird(test_input: Dict[str, Any], expected: Any, test_type: int) -> None
     else:
         try:
             bird = Bird(**test_input)
+            assert False
         except Exception as e:
             assert type(e) == expected

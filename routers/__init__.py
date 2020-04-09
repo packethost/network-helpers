@@ -44,6 +44,7 @@ class Router:
         self.bgp_neighbors = []
         self.v4_peer_count = 0
         self.v6_peer_count = 0
+        self.bgp_neighbors = []
         if "bgp_neighbors" in kwargs:
             for neighbor in kwargs["bgp_neighbors"]:
                 self.bgp_neighbors.append(BgpNeighbor(**neighbor))
@@ -52,11 +53,6 @@ class Router:
                 elif neighbor["address_family"] == 6:
                     self.v6_peer_count = len(neighbor["peer_ips"])
 
-        self.bgp_neighbors = (
-            [BgpNeighbor(**neighbor) for neighbor in kwargs["bgp_neighbors"]]
-            if "bgp_neighbors" in kwargs
-            else []
-        )
         try:
             self.ip_addresses = kwargs["network"]["addresses"]
         except KeyError:
