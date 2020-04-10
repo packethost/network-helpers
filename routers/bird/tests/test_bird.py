@@ -1,8 +1,9 @@
 from typing import Any, Dict
 
 import pytest
-from packet_bird import Bird
-from tests.data import INVALID_RESPONSES, initialize
+from routers.bird import Bird
+from routers.bird.tests.data import INVALID_RESPONSES
+from routers.test_data import initialize
 
 VALID_RESPONSES = initialize()
 
@@ -24,7 +25,7 @@ VALID_RESPONSES = initialize()
         ),  # Json response without bgp data
         (
             INVALID_RESPONSES[2],
-            LookupError,
+            TypeError,
             "invalid",
         ),  # Json response with missing fields in bgp_neighbors
         (
@@ -53,5 +54,6 @@ def test_Bird(test_input: Dict[str, Any], expected: Any, test_type: int) -> None
     else:
         try:
             bird = Bird(**test_input)
+            assert False
         except Exception as e:
             assert type(e) == expected

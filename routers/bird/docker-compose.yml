@@ -9,4 +9,4 @@ services:
     restart: unless-stopped
     ports:
       - "179:179"
-    hostname: looking-glass
+    hostname: bird

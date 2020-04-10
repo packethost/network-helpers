@@ -1,0 +1,59 @@
+frr defaults traditional
+log syslog informational
+ipv6 forwarding
+service integrated-vtysh-config
+!
+{%- for neighbor in data.bgp_neighbors.values() %}
+{%- for group in neighbor %}
+{%- if group.multihop %}
+{%- if group.address_family == 4 %}
+{%- for address in group.peer_ips %}
+ip route {{ address }}/32 {{ data.meta.ipv4_next_hop }}
+{%- endfor %}
+{%- else %}
+{%- for address in group.peer_ips %}
+ipv6 route {{ address }}/32 {{ data.meta.ipv6_next_hop }}
+{%- endfor %}
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
+!
+{%- for asn, neighbor in data.bgp_neighbors.items() %}
+router bgp {{ asn }}
+ bgp ebgp-requires-policy
+ {%- for group in neighbor %}
+ neighbor V{{ group.address_family }} peer-group
+ neighbor V{{ group.address_family }} remote-as {{ group.peer_as }}
+ {%- if group.md5_enabled %}
+ neighbor V{{ group.address_family }} password {{ group.md5_password }}
+ {%- endif %}
+ {%- if group.multihop %}
+ neighbor V{{ group.address_family }} ebgp-multihop 5
+ {%- endif %}
+ {%- for address in group.peer_ips %}
+ neighbor {{ address }} peer-group V{{ group.address_family }}
+ {%- endfor -%}
+ {% endfor %}
+ !
+ {%- for group in neighbor %}
+ address-family ipv{{ group.address_family }} unicast
+  redistribute connected
+  {%- if group.address_family == 6 %}
+  neighbor V{{ group.address_family }} activate
+  {%- endif %}
+  neighbor V{{ group.address_family }} route-map IMPORT in
+  neighbor V{{ group.address_family }} route-map EXPORT out
+ exit-address-family
+ !
+ {%- endfor %}
+{%- endfor %}
+route-map EXPORT deny 100
+!
+route-map EXPORT permit 1
+ match interface lo
+!
+route-map IMPORT deny 1
+!
+line vty
+!

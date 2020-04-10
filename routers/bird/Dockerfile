@@ -18,15 +18,15 @@ RUN cd /root/bird-${RELEASE} && \
     make && \
     make install
 
-ADD . /opt/bird
+ADD . /opt/bgp
 
-RUN pip3 install --upgrade pip && \
-    pip3 install -r /opt/bird/requirements.txt
+WORKDIR /opt/bgp
+
+RUN pip3 install --upgrade pip setuptools && \
+    pip3 install -e /opt/bgp/
 
 RUN mkdir /etc/bird
 
-WORKDIR /opt/bird
-
 EXPOSE 179
 
-ENTRYPOINT ["/opt/bird/entrypoint.sh"]
+ENTRYPOINT ["/opt/bgp/routers/bird/entrypoint.sh"]
