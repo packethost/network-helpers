@@ -20,3 +20,9 @@ pipeline:
     image: quay.io/packet/network-helpers:${DRONE_BUILD_NUMBER}-${DRONE_COMMIT_SHA}
     commands:
       - make test-bird
+
+  test_frr:
+    group: test
+    image: quay.io/packet/network-helpers:${DRONE_BUILD_NUMBER}-${DRONE_COMMIT_SHA}
+    commands:
+      - make test-frr
