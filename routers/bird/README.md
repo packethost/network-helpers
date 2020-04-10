@@ -9,7 +9,7 @@ An elastic IP address can simply be announced via Bird from the instance that is
 * A BGP enabled project and instance
 * An elastic IP configured on interface lo
 
-The former can be accomplished via the Packet client portal while the latter can be done via the following two commands:
+The former can be accomplished via the Packet client portal while the latter can be done via the following two commands (this applies to Ubuntu; network configuration will typically vary by distro):
 
 ```bash
 echo 'auto lo:0
