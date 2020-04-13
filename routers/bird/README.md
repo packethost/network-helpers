@@ -1,8 +1,6 @@
 ## Bird
 
-Bird is an open source routing daemon for Unix-like systems. It can be used to establish bgp sessions between client instances and the packet network.
-
-An elastic IP address can simply be announced via Bird from the instance that is currently using it, thereby making it easy to freely move the IP from one instance to another within the same project.
+Bird is an open source routing daemon for Unix-like systems. It can be used to establish bgp sessions between client instances and the Packet network. An elastic IP address can simply be announced via Bird from the instance that is currently using it, thereby making it easy to freely move the IP from one instance to another within the same project.
 
 ### Requirements
 
@@ -26,7 +24,7 @@ ifup lo:0
 
 ### Configuration
 
-#### Method 1: Bird on Baremetal:
+#### Method 1: Bird on Baremetal
 
 First install system dependencies. On Ubuntu 18.04 this looks like:
 
