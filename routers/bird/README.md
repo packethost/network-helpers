@@ -117,9 +117,9 @@ neighbor_v4_1 BGP      master   up     15:20:31    Established
 
 In this case we only have a single elastic IP bound to interface lo, and we see the prefix is being exported and accepted so we are done.
 
-**Note:** Bird uses separate daemons for IPv4 and IPv6 routing. To configure bgp over IPv6 using bird, the process will be the same as  above, except that the configuration command you will use will be:
+**Note:** Bird uses separate daemons for IPv4 and IPv6 routing. To configure bgp over IPv6 using bird, the process will be the same as above, except that the configuration command you will use will be:
 
-```
+```bash
 ./configure.py -r bird6 | tee /etc/bird/bird6.conf
 ```
 
