@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
@@ -13,46 +13,21 @@ class FRR(Router):
             raise ValueError("At least one bgp neighbor is required")
         self.config = self.render_config(self.build_config(), "frr.conf.j2").strip()
 
-    def build_config(self) -> Dict[str, Any]:  # noqa: C901
-        ipv4_multi_hop = False
-        ipv6_multi_hop = False
+    def build_config(self) -> Dict[str, Any]:
+        ipv4_next_hop, ipv6_next_hop = self.multi_hop_gateway()
+
+        if self.ipv4_multi_hop and not ipv4_next_hop:
+            raise LookupError("Unable to determine IPv4 next hop for multihop peer")
+        if self.ipv6_multi_hop and not ipv6_next_hop:
+            raise LookupError("Unable to determine IPv6 next hop for multihop peer")
+
         bgp_neighbors_per_asn: Dict[int, List[Any]] = {}
         for neighbor in self.bgp_neighbors:
             if not neighbor.peer_ips:
                 raise ValueError("At least one peer ip per bgp group is required")
-            if neighbor.multihop and neighbor.address_family == 4:
-                ipv4_multi_hop = True
-            if neighbor.multihop and neighbor.address_family == 6:
-                ipv6_multi_hop = True
             if neighbor.customer_as not in bgp_neighbors_per_asn:
                 bgp_neighbors_per_asn[neighbor.customer_as] = []
             bgp_neighbors_per_asn[neighbor.customer_as].append(neighbor._asdict())
-
-        ipv4_next_hop = None
-        ipv6_next_hop = None
-        if ipv4_multi_hop:
-            for address in self.ip_addresses:
-                if (
-                    address["address_family"] == 4
-                    and address["public"]
-                    and address["management"]
-                ):
-                    ipv4_next_hop = address["gateway"]
-                    break
-        if ipv6_multi_hop:
-            for address in self.ip_addresses:
-                if (
-                    address["address_family"] == 6
-                    and address["public"]
-                    and address["management"]
-                ):
-                    ipv6_next_hop = address["gateway"]
-                    break
-
-        if ipv4_multi_hop and not ipv4_next_hop:
-            raise LookupError("Unable to determine IPv4 next hop for multihop peer")
-        if ipv6_multi_hop and not ipv6_next_hop:
-            raise LookupError("Unable to determine IPv6 next hop for multihop peer")
 
         return {
             "bgp_neighbors": bgp_neighbors_per_asn,

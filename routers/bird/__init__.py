@@ -1,6 +1,8 @@
 import os
-from typing import Any, Dict
+import pprint
+from typing import Any, Dict, Optional
 
+import jmespath
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 from routers import Router
@@ -15,25 +17,28 @@ class Bird(Router):
         ).strip()
 
     def build_config(self, family: int) -> Dict[str, Any]:
-        router_id = None
-        for address in self.ip_addresses:
-            if (
-                address["address_family"] == 4
-                and not address["public"]
-                and address["management"]
-            ):
-                router_id = address["address"]
-                break
-
-        if not router_id:
+        if not self.router_id:
             raise LookupError("Unable to determine router id")
+
+        ipv4_next_hop, ipv6_next_hop = self.multi_hop_gateway()
+
+        if self.ipv4_multi_hop and not ipv4_next_hop:
+            raise LookupError("Unable to determine IPv4 next hop for multihop peer")
+        if self.ipv6_multi_hop and not ipv6_next_hop:
+            raise LookupError("Unable to determine IPv6 next hop for multihop peer")
 
         return {
             "bgp_neighbors": [neighbor._asdict() for neighbor in self.bgp_neighbors],
-            "meta": {"router_id": router_id, "family": self.family},
+            "meta": {
+                "router_id": self.router_id,
+                "family": self.family,
+                "ipv4_next_hop": ipv4_next_hop,
+                "ipv6_next_hop": ipv6_next_hop,
+            },
         }
 
     def render_config(self, data: Dict[str, Any], filename: str) -> str:
+        pprint.pprint(data)
         script_dir = os.path.dirname(__file__)
         search_dir = os.path.join(script_dir, "templates")
         loader = FileSystemLoader(searchpath=search_dir)

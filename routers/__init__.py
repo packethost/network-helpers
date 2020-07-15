@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, NamedTuple
+from typing import Any, Dict, List, NamedTuple, Optional
+
+import jmespath
 
 BgpNeighbor = NamedTuple(
     "BgpNeighbor",
@@ -23,7 +25,9 @@ class Router:
         self.v4_peer_count = 0
         self.v6_peer_count = 0
         self.bgp_neighbors = []
+        self.bgp_neighbor_dicts = []
         if "bgp_neighbors" in kwargs:
+            self.bgp_neighbor_dicts = kwargs["bgp_neighbors"]
             for neighbor in kwargs["bgp_neighbors"]:
                 self.bgp_neighbors.append(BgpNeighbor(**neighbor))
                 if neighbor["address_family"] == 4:
@@ -35,3 +39,47 @@ class Router:
             self.ip_addresses = kwargs["network"]["addresses"]
         except KeyError:
             self.ip_addresses = []
+
+        self.ipv4_multi_hop = bool(
+            jmespath.search(
+                "[?address_family == `4`].multihop | [0]", self.bgp_neighbor_dicts
+            )
+        )
+        self.ipv6_multi_hop = bool(
+            jmespath.search(
+                "[?address_family == `6`].multihop | [0]", self.bgp_neighbor_dicts
+            )
+        )
+
+    @property
+    def router_id(self):
+        router_id = None
+        for address in self.ip_addresses:
+            if (
+                address["address_family"] == 4
+                and not address["public"]
+                and address["management"]
+            ):
+                router_id = address["address"]
+                break
+
+        return router_id
+
+    def multi_hop_gateway(self):
+        try:
+            ipv4_next_hop = jmespath.search(
+                "[?address_family == `4` && public && management].gateway | [0]",
+                self.ip_addresses,
+            )
+            ipv6_next_hop = jmespath.search(
+                "[?address_family == `6` && public && management].gateway | [0]",
+                self.ip_addresses,
+            )
+        except Exception as e:
+            raise LookupError(
+                "Unable to parse static route next hop(s) from instance ip_addresses {}.".format(
+                    e
+                )
+            )
+
+        return (ipv4_next_hop, ipv6_next_hop)

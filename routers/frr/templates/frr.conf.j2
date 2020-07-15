@@ -12,7 +12,7 @@ ip route {{ address }}/32 {{ data.meta.ipv4_next_hop }}
 {%- endfor %}
 {%- else %}
 {%- for address in group.peer_ips %}
-ipv6 route {{ address }}/32 {{ data.meta.ipv6_next_hop }}
+ipv6 route {{ address }}/128 {{ data.meta.ipv6_next_hop }}
 {%- endfor %}
 {%- endif %}
 {%- endif %}

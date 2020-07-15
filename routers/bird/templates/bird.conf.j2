@@ -20,6 +20,11 @@ protocol kernel {
   export all; # Default is export none
 }
 
+protocol static {
+  route 192.168.X.Y/24 via 192.168.A.B;
+  route 192.168.X.Z/24 via 192.168.A.B;
+}
+
 # This pseudo-protocol watches all interface up/down events.
 protocol device {
   scan time 10; # Scan interfaces every 10 seconds
@@ -31,7 +36,7 @@ protocol bgp neighbor_v{{ group.address_family }}_{{ loop.index }} {
   export filter packet_bgp;
   local as {{ group.customer_as }};
   {%- if group.multihop %}
-  multihop;
+  multihop 5;
   {%- endif %}
   neighbor {{ neighbor }} as {{ group.peer_as }};
   {%- if group.md5_enabled %}
