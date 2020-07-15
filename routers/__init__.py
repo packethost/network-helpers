@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
 import jmespath
 
@@ -65,7 +65,7 @@ class Router:
 
         return router_id
 
-    def multi_hop_gateway(self):
+    def multi_hop_gateway(self) -> List[str]:
         try:
             ipv4_next_hop = jmespath.search(
                 "[?address_family == `4` && public && management].gateway | [0]",

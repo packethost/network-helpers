@@ -20,10 +20,27 @@ protocol kernel {
   export all; # Default is export none
 }
 
+{% if data.meta.ipv4_next_hop and data.meta.family == 4 -%}
 protocol static {
-  route 192.168.X.Y/24 via 192.168.A.B;
-  route 192.168.X.Z/24 via 192.168.A.B;
+  {%- for group in data.bgp_neighbors %}
+  {%- if group.address_family == data.meta.family %}
+  {%- for neighbor in group.peer_ips %}
+  route {{ neighbor }}/32 via {{ data.meta.ipv4_next_hop }};
+  {%- endfor %}
+  {%- endif %}
+  {%- endfor %}
 }
+{%- elif data.meta.ipv6_next_hop and data.meta.family == 6 %}
+protocol static {
+  {% for group in data.bgp_neighbors %}
+  {%- if group.address_family == data.meta.family %}
+  {%- for neighbor in group.peer_ips %}
+  route {{ neighbor }}/128 via {{ data.meta.ipv4_next_hop }};
+  {%- endfor %}
+  {%- endif %}
+  {%- endfor %}
+}
+{%- endif %}
 
 # This pseudo-protocol watches all interface up/down events.
 protocol device {

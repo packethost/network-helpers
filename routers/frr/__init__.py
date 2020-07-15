@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
