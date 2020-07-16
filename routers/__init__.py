@@ -53,9 +53,7 @@ class Router:
             )
         except Exception as e:
             raise LookupError(
-                "Unable to parse multihop attribute from bgp_neighbors: {}.".format(
-                    e
-                )
+                "Unable to parse multihop attribute from bgp_neighbors: {}.".format(e)
             )
 
     @property
