@@ -21,7 +21,7 @@ BgpNeighbor = NamedTuple(
 
 class Router:
     def __init__(self, **kwargs: Any) -> None:
-        self.bgp_neighbors = []
+        self.bgp_neighbors: List[BgpNeighbor] = []
         self.v4_peer_count = 0
         self.v6_peer_count = 0
         self.bgp_neighbors = []
@@ -52,7 +52,7 @@ class Router:
         )
 
     @property
-    def router_id(self):
+    def router_id(self) -> Optional[str]:
         router_id = None
         for address in self.ip_addresses:
             if (
@@ -65,7 +65,8 @@ class Router:
 
         return router_id
 
-    def multi_hop_gateway(self) -> List[str]:
+    @property
+    def multi_hop_gateway(self) -> Tuple[Optional[str], Optional[str]]:
         try:
             ipv4_next_hop = jmespath.search(
                 "[?address_family == `4` && public && management].gateway | [0]",

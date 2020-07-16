@@ -16,7 +16,7 @@ class Bird(Router):
         if not self.router_id:
             raise LookupError("Unable to determine router id")
 
-        ipv4_next_hop, ipv6_next_hop = self.multi_hop_gateway()
+        ipv4_next_hop, ipv6_next_hop = self.multi_hop_gateway
 
         if self.ipv4_multi_hop and not ipv4_next_hop:
             raise LookupError("Unable to determine IPv4 next hop for multihop peer")

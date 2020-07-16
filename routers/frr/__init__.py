@@ -14,7 +14,7 @@ class FRR(Router):
         self.config = self.render_config(self.build_config(), "frr.conf.j2").strip()
 
     def build_config(self) -> Dict[str, Any]:
-        ipv4_next_hop, ipv6_next_hop = self.multi_hop_gateway()
+        ipv4_next_hop, ipv6_next_hop = self.multi_hop_gateway
 
         if self.ipv4_multi_hop and not ipv4_next_hop:
             raise LookupError("Unable to determine IPv4 next hop for multihop peer")

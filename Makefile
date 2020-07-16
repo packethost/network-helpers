@@ -16,6 +16,10 @@ clean-pyc:
 lint: clean-pyc
 	black --check $(TEST_ROOT)
 
+.PHONY: test-routers
+test-routers:
+	mypy $(ROUTERS_PATH) --config-file $(ROUTERS_PATH)/pytest.ini
+
 .PHONY: test-bird
 test-bird:
 	mypy $(BIRD_PATH) --config-file $(BIRD_PATH)/pytest.ini
@@ -26,4 +30,4 @@ test-frr:
 	mypy $(FRR_PATH) --config-file $(FRR_PATH)/pytest.ini
 	cd $(FRR_PATH); python -m pytest --cov --pylama --verbose --color=yes
 
-all: lint test-bird test-frr
+all: lint test-routers test-bird test-frr
