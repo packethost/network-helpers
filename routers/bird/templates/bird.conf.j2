@@ -20,6 +20,28 @@ protocol kernel {
   export all; # Default is export none
 }
 
+{% if data.meta.ipv4_next_hop and data.meta.family == 4 -%}
+protocol static {
+  {%- for group in data.bgp_neighbors %}
+  {%- if group.address_family == data.meta.family %}
+  {%- for neighbor in group.peer_ips %}
+  route {{ neighbor }}/32 via {{ data.meta.ipv4_next_hop }};
+  {%- endfor %}
+  {%- endif %}
+  {%- endfor %}
+}
+{%- elif data.meta.ipv6_next_hop and data.meta.family == 6 -%}
+protocol static {
+  {%- for group in data.bgp_neighbors %}
+  {%- if group.address_family == data.meta.family %}
+  {%- for neighbor in group.peer_ips %}
+  route {{ neighbor }}/128 via {{ data.meta.ipv6_next_hop }};
+  {%- endfor %}
+  {%- endif %}
+  {%- endfor %}
+}
+{%- endif %}
+
 # This pseudo-protocol watches all interface up/down events.
 protocol device {
   scan time 10; # Scan interfaces every 10 seconds
@@ -31,7 +53,7 @@ protocol bgp neighbor_v{{ group.address_family }}_{{ loop.index }} {
   export filter packet_bgp;
   local as {{ group.customer_as }};
   {%- if group.multihop %}
-  multihop;
+  multihop 5;
   {%- endif %}
   neighbor {{ neighbor }} as {{ group.peer_as }};
   {%- if group.md5_enabled %}

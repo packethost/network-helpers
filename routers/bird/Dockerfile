@@ -22,7 +22,7 @@ ADD . /opt/bgp
 
 WORKDIR /opt/bgp
 
-RUN pip3 install --upgrade pip setuptools && \
+RUN pip3 install --upgrade pip setuptools jmespath && \
     pip3 install -e /opt/bgp/
 
 RUN mkdir /etc/bird
