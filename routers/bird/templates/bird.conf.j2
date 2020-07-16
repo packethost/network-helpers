@@ -30,12 +30,12 @@ protocol static {
   {%- endif %}
   {%- endfor %}
 }
-{%- elif data.meta.ipv6_next_hop and data.meta.family == 6 %}
+{%- elif data.meta.ipv6_next_hop and data.meta.family == 6 -%}
 protocol static {
-  {% for group in data.bgp_neighbors %}
+  {%- for group in data.bgp_neighbors %}
   {%- if group.address_family == data.meta.family %}
   {%- for neighbor in group.peer_ips %}
-  route {{ neighbor }}/128 via {{ data.meta.ipv4_next_hop }};
+  route {{ neighbor }}/128 via {{ data.meta.ipv6_next_hop }};
   {%- endfor %}
   {%- endif %}
   {%- endfor %}

@@ -38,6 +38,7 @@ Now clone the repo and install remaining python dependencies:
 cd /opt
 git clone https://github.com/packethost/network-helpers.git
 cd network-helpers
+pip3 install jmespath
 pip3 install -e .
 ```
 
