@@ -40,16 +40,23 @@ class Router:
         except KeyError:
             self.ip_addresses = []
 
-        self.ipv4_multi_hop = bool(
-            jmespath.search(
-                "[?address_family == `4`].multihop | [0]", self.bgp_neighbor_dicts
+        try:
+            self.ipv4_multi_hop = bool(
+                jmespath.search(
+                    "[?address_family == `4`].multihop | [0]", self.bgp_neighbor_dicts
+                )
             )
-        )
-        self.ipv6_multi_hop = bool(
-            jmespath.search(
-                "[?address_family == `6`].multihop | [0]", self.bgp_neighbor_dicts
+            self.ipv6_multi_hop = bool(
+                jmespath.search(
+                    "[?address_family == `6`].multihop | [0]", self.bgp_neighbor_dicts
+                )
             )
-        )
+        except Exception as e:
+            raise LookupError(
+                "Unable to parse multihop attribute from bgp_neighbors: {}.".format(
+                    e
+                )
+            )
 
     @property
     def router_id(self) -> Optional[str]:
@@ -78,7 +85,7 @@ class Router:
             )
         except Exception as e:
             raise LookupError(
-                "Unable to parse static route next hop(s) from instance ip_addresses {}.".format(
+                "Unable to parse static route next hop(s) from instance ip_addresses: {}.".format(
                     e
                 )
             )
