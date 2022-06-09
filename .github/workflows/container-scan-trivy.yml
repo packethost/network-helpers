@@ -1,0 +1,92 @@
+---
+name: trivy-container-scan
+
+# Run for all pushes to main and pull requests when Go or YAML files change
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '15 15 * * 2'
+  pull_request:
+
+jobs:
+
+  scan-trivy-1:
+    name: sec-scan-trivy-1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build container image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./routers/frr/Dockerfile
+          push: false
+          load: true
+          tags: localbuild/sec-scan-trivy:latest
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localbuild/sec-scan-trivy:latest
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+  scan-trivy-2:
+    name: sec-scan-trivy-2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build container image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./routers/bird/Dockerfile
+          push: false
+          load: true
+          tags: localbuild/sec-scan-trivy:latest
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localbuild/sec-scan-trivy:latest
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+  scan-trivy-3:
+    name: sec-scan-trivy-3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build container image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: localbuild/sec-scan-trivy:latest
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localbuild/sec-scan-trivy:latest
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
